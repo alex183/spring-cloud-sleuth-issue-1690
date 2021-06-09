@@ -1,0 +1,88 @@
+spring:
+  jackson:
+    mapper:
+      ACCEPT_CASE_INSENSITIVE_ENUMS: true
+  webflux:
+    base-path: /skeleton-reactive
+
+server:
+  port: 8080
+  servlet:
+    context-path: /skeleton-reactive
+
+
+logging:
+  level:
+    root: ${LOGLEVEL:INFO}
+    org.springframework.web: ${LOGLEVEL:INFO}
+    org.zalando.logbook: TRACE
+
+logbook:
+  exclude:
+    - /auditevents
+    - /beans
+    - /conditions
+    - /configprops
+    - /env
+    - /flyway
+    - /heapdump
+    - /**/actuator/**/*
+    - /**/actuator/*
+    - /actuator/**/*
+    - /actuator/*
+    - /liquibase
+    - /logfile
+    - /loggers
+    - /metrics
+    - /prometheus
+    - /scheduledtasks
+    - /sessions
+    - /shutdown
+    - /threaddump
+    - /trace
+    - /mappings
+    - /**/swagger*
+    - /**/v2/api-docs
+    - /**/configuration/ui/**/*
+    - /**/swagger-resources*/**/*
+    - /**/configuration/security*/**/*
+    - /**/swagger-ui.html
+    - /**/webjars/**
+    - /**/swagger-ui/*
+    - /**/swagger-ui/**
+    - /**/api-docs
+  filter.enabled: true
+  format.style: json
+  obfuscate:
+    headers:
+      - Authorization
+      - X-Secret
+      - senha
+    parameters:
+      - access_token
+      - open_id
+      - id_token
+      - tokenAcesso
+      - senha
+      - password
+      - refreshToken
+      - refresh_token
+      - accessToken
+  write:
+    category: http.wire-log
+    level: INFO
+  minimum-status: 200
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: info, health, metrics
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      atlas:
+        enabled: false

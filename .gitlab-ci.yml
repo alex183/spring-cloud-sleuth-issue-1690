@@ -1,0 +1,48 @@
+stages:
+  - check
+  - build
+  - deploy
+################################ - CHECK         - ################################
+# Check Master
+check:master:
+  stage: check
+  script:
+    - if test "$(git cherry -v origin/$CI_COMMIT_REF_NAME origin/master)" != ""; then git cherry -v origin/$CI_COMMIT_REF_NAME origin/master && exit 1; fi
+  only:
+    - triggers
+# Check Beta
+check:beta:
+  stage: check
+  script:
+    - if test "$(git cherry -v origin/$CI_COMMIT_SHA origin/$CI_COMMIT_REF_NAME)" != ""; then git cherry -v origin/$CI_COMMIT_SHA origin/$CI_COMMIT_REF_NAME && exit 1; fi
+  only:
+    - /^*.-beta$/
+# Check Tatu
+check:tatu:
+  stage: check
+  script:
+    - /root/.deploy/tatu-build
+################################ - BUILD         - ################################
+gradle:build:
+  stage: build
+  script:
+    - chmod +x gradlew
+    - ./gradlew check --status
+    - ./gradlew jar -Dversion=build-$CI_PIPELINE_ID -Dusername=$DOCKER_USER -Dpassword=$DOCKER_PASS --info --stacktrace
+    - ./gradlew build
+    - docker build . -t $DOCKER_REGISTRY/$(echo "$CI_PROJECT_PATH" | tr '[:upper:]' '[:lower:]'):build-$CI_PIPELINE_ID
+    - docker push $DOCKER_REGISTRY/$(echo "$CI_PROJECT_PATH" | tr '[:upper:]' '[:lower:]'):build-$CI_PIPELINE_ID
+    - python /root/.deploy/tag.py
+  only:
+    - triggers
+################################ - DEPLOY        - ################################
+deploy:
+  stage: deploy
+  script:
+    - python /root/.deploy/deploy2.py
+  only:
+    - master
+    - /^*.-alpha$/
+    - /^*.-beta$/
+    - triggers
+    - stage
